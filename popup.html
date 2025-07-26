@@ -6,26 +6,50 @@
   <style>
     body {
       font-family: monospace;
+      width: 300px;
     }
 
+    input,
+    select,
     textarea {
-      width: 100%;
-      height: 100px;
+      width: 95%;
+      margin-bottom: 5px;
+    }
+
+    label {
+      font-weight: bold;
     }
   </style>
 </head>
 
 <body>
   <h3>Global Toggle: <input type="checkbox" id="globalEnabled" checked></h3>
-  <button id="activatePicker">Activate Element Picker</button>
+  <hr>
   <h3>Mods:</h3>
   <ul id="siteList"></ul>
+  <hr>
   <h3>Add/Edit Mod:</h3>
+  <label for="siteUrl">Domain:</label>
   <input id="siteUrl" placeholder="example.com" type="text">
-  <textarea id="cssInput" placeholder="Custom CSS"></textarea>
-  <textarea id="jsInput" placeholder="Custom JS (incl. HTML via DOM)"></textarea>
+
+  <label for="modAction">Action:</label>
+  <select id="modAction">
+    <option value="remove">Remove Element</option>
+    <option value="hide">Hide Element</option>
+    <option value="addClass">Add CSS Class</option>
+  </select>
+
+  <label for="modSelector">CSS Selector:</label>
+  <input id="modSelector" placeholder="e.g., [data-testid='...']" type="text">
+
+  <label for="modValue">Value (optional):</label>
+  <input id="modValue" placeholder="e.g., my-custom-class" type="text">
+
+  <textarea id="cssInput" placeholder="Custom CSS (still works!)"></textarea>
+
   <button id="saveBtn">Save Mod</button>
   <button id="deleteBtn">Delete Mod</button>
+
   <script src="popup.js"></script>
 </body>
 

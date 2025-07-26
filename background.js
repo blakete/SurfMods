@@ -1,44 +1,44 @@
-// background.js
-
-// Function to remove the x.com sidebar
-function removeXSideNav() {
-    const anchorSelector = '[data-testid="SideNav_NewTweet_Button"]';
-    const containerSelector = 'header';
-
-    function findAndRemove() {
-        const anchorElement = document.querySelector(anchorSelector);
-        if (anchorElement) {
-            const sideNavContainer = anchorElement.closest(containerSelector);
-            if (sideNavContainer) {
-                sideNavContainer.remove();
-                // Disconnect the observer once the job is done to save resources.
-                observer.disconnect();
-            }
+// A safe, pre-defined function that performs DOM manipulation.
+// This function will be injected onto the page.
+function performMod(action, selector, value) {
+    const observer = new MutationObserver(() => {
+        const elements = document.querySelectorAll(selector);
+        if (elements.length > 0) {
+            elements.forEach(el => {
+                switch (action) {
+                    case 'remove':
+                        el.remove();
+                        break;
+                    case 'hide':
+                        el.style.display = 'none';
+                        break;
+                    case 'addClass':
+                        if (value) el.classList.add(value);
+                        break;
+                }
+            });
+            // Optional: Disconnect after first success if the element doesn't reappear.
+            // observer.disconnect();
         }
-    }
+    });
 
-    const observer = new MutationObserver(findAndRemove);
     observer.observe(document.body, { childList: true, subtree: true });
-    setTimeout(findAndRemove, 500);
 }
 
 // Listen for when a tab is updated
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    // Check if the tab is fully loaded and has a URL
     if (changeInfo.status === 'complete' && tab.url) {
         const url = new URL(tab.url);
         const hostname = url.hostname;
 
-        // Check if mods are globally enabled
         chrome.storage.sync.get(['sites', 'globalEnabled'], data => {
             if (data.globalEnabled === false) return;
 
             const sites = data.sites || {};
             const site = sites[hostname];
 
-            // If a rule for the site exists and is enabled
             if (site && site.enabled) {
-                // Inject CSS (this is still safe and generic)
+                // CSS injection remains the same
                 if (site.css) {
                     chrome.scripting.insertCSS({
                         target: { tabId: tabId },
@@ -46,17 +46,14 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                     });
                 }
 
-                // --- JavaScript Injection Logic ---
-                // Instead of running arbitrary code, check the hostname
-                // and run a specific, pre-defined function.
-                if (hostname === 'x.com') {
+                // JS logic now uses the safe, pre-defined function
+                if (site.action && site.selector) {
                     chrome.scripting.executeScript({
                         target: { tabId: tabId },
-                        func: removeXSideNav // Execute the pre-defined function
+                        func: performMod,
+                        args: [site.action, site.selector, site.value]
                     });
                 }
-                // To add another mod, you would add:
-                // else if (hostname === 'some-other-site.com') { ... }
             }
         });
     }
