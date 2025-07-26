@@ -1,5 +1,27 @@
 // background.js
 
+// Function to remove the x.com sidebar
+function removeXSideNav() {
+    const anchorSelector = '[data-testid="SideNav_NewTweet_Button"]';
+    const containerSelector = 'header';
+
+    function findAndRemove() {
+        const anchorElement = document.querySelector(anchorSelector);
+        if (anchorElement) {
+            const sideNavContainer = anchorElement.closest(containerSelector);
+            if (sideNavContainer) {
+                sideNavContainer.remove();
+                // Disconnect the observer once the job is done to save resources.
+                observer.disconnect();
+            }
+        }
+    }
+
+    const observer = new MutationObserver(findAndRemove);
+    observer.observe(document.body, { childList: true, subtree: true });
+    setTimeout(findAndRemove, 500);
+}
+
 // Listen for when a tab is updated
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     // Check if the tab is fully loaded and has a URL
@@ -14,9 +36,9 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
             const sites = data.sites || {};
             const site = sites[hostname];
 
-            // If a mod for the site exists and is enabled
+            // If a rule for the site exists and is enabled
             if (site && site.enabled) {
-                // Inject CSS
+                // Inject CSS (this is still safe and generic)
                 if (site.css) {
                     chrome.scripting.insertCSS({
                         target: { tabId: tabId },
@@ -24,39 +46,17 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                     });
                 }
 
-                // // Inject JavaScript
-                // if (site.js) {
-                //     chrome.scripting.executeScript({
-                //         target: { tabId: tabId },
-                //         func: (jsCode) => {
-                //             const script = document.createElement('script');
-                //             script.textContent = jsCode;
-                //             (document.head || document.documentElement).appendChild(script);
-                //             script.remove();
-                //         },
-                //         args: [site.js],
-                //         // world: 'MAIN' // Execute in the main world to interact with page scripts
-                //     });
-                // }
-
-                // Inject JavaScript
-                if (site.js) {
+                // --- JavaScript Injection Logic ---
+                // Instead of running arbitrary code, check the hostname
+                // and run a specific, pre-defined function.
+                if (hostname === 'x.com') {
                     chrome.scripting.executeScript({
-                        target: { tabId: tabId }, // Defaults to the secure, ISOLATED world
-                        func: (userJs) => {
-                            // This function runs in the isolated world.
-                            // We use the Function constructor to execute the user's
-                            // saved script string directly, without creating a <script> tag.
-                            try {
-                                new Function(userJs)();
-                            } catch (e) {
-                                console.error("ModKit: Error executing user script.", e);
-                            }
-                        },
-                        args: [site.js] // Pass the user's script in as an argument.
+                        target: { tabId: tabId },
+                        func: removeXSideNav // Execute the pre-defined function
                     });
                 }
-                
+                // To add another mod, you would add:
+                // else if (hostname === 'some-other-site.com') { ... }
             }
         });
     }
