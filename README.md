@@ -1,7 +1,7 @@
 # SurfMods  
 **A simple, open source, web surfing mod kit** that allows you to **“surf the web your way 🌊🏄‍♂️🤙”**
 
-**ModKit** is a no-nonsense, developer-focused, open source Chrome extension for customizing websites on the fly.
+**SurfMods** is a no-nonsense, developer-focused, open source Chrome extension for customizing websites on the fly.
 
 - Inject CSS to restyle layouts, use JavaScript to tweak behavior, or insert custom HTML — all scoped per site.
 - Perfect for devs who want persistent control without bloated UIs.
@@ -29,8 +29,8 @@
 1. **Clone or download** this repository.  
 2. Open Chrome and navigate to `chrome://extensions/`.  
 3. Toggle **Developer mode** ON.  
-4. Click **Load unpacked** and select the `ModKit` directory.  
-5. (Optional) Pin the ModKit icon to your toolbar for quick access.
+4. Click **Load unpacked** and select the `SurfMods` directory.  
+5. (Optional) Pin the SurfMods icon to your toolbar for quick access.
 
 > **Note:** Be sure to include a `128×128` PNG icon named `icon.png` in the root.
 
@@ -38,7 +38,7 @@
 
 ## Usage
 
-1. Click the **ModKit** toolbar icon to open the popup.  
+1. Click the **SurfMods** toolbar icon to open the popup.  
 2. **Create a Rule**:  
    - **Domain**: `example.com`  
    - **CSS** (e.g.):  
