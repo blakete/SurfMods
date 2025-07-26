@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const modValue = document.getElementById('modValue');
   const saveBtn = document.getElementById('saveBtn');
   const deleteBtn = document.getElementById('deleteBtn');
+  const activatePicker = document.getElementById('activatePicker');
 
   // --- Functions ---
   function refreshList(sites) {
@@ -17,17 +18,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const site = sites[key];
       const li = document.createElement('li');
 
-      // 1. Create the toggle checkbox for the individual mod
       const toggleCheckbox = document.createElement('input');
       toggleCheckbox.type = 'checkbox';
       toggleCheckbox.checked = site.enabled;
       toggleCheckbox.title = `Enable/Disable mod for ${key}`;
 
-      // 2. Add a listener to handle the toggle action
       toggleCheckbox.addEventListener('change', () => {
         sites[key].enabled = toggleCheckbox.checked;
         saveSites(sites);
-        // Reload the page to apply the change instantly
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           if (tabs[0] && tabs[0].id) {
             chrome.tabs.reload(tabs[0].id);
@@ -35,13 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       });
 
-      // 3. Create a label for the site name that can still be clicked
       const siteNameLabel = document.createElement('label');
       siteNameLabel.textContent = key;
       siteNameLabel.style.cursor = 'pointer';
       siteNameLabel.style.marginLeft = '4px';
 
-      // When the site name is clicked, it still populates the form
       siteNameLabel.addEventListener('click', () => {
         siteUrl.value = key;
         cssInput.value = site.css || '';
@@ -50,7 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
         modValue.value = site.value || '';
       });
 
-      // 4. Append the checkbox and label to the list item
       li.appendChild(toggleCheckbox);
       li.appendChild(siteNameLabel);
       siteList.appendChild(li);
@@ -65,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modValue.value = '';
   }
 
-  // --- Event Listeners (No changes below this line) ---
+  // --- Event Listeners ---
   loadSites(sites => {
     refreshList(sites);
     chrome.storage.sync.get('globalEnabled', data => {
@@ -92,7 +87,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSites(sites => {
       const existingMod = sites[siteUrl.value];
       sites[siteUrl.value] = {
-        // Preserve existing enabled state on save, or default to true for new mods
         enabled: existingMod ? existingMod.enabled : true,
         css: cssInput.value,
         action: modAction.value,
@@ -111,6 +105,17 @@ document.addEventListener('DOMContentLoaded', () => {
       saveSites(sites);
       refreshList(sites);
       clearInputs();
+    });
+  });
+
+  activatePicker.addEventListener('click', () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+      if (tabs[0] && tabs[0].id && !tabs[0].url.startsWith('chrome://')) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: 'startPicker' });
+        window.close(); // Close the popup to get it out of the way
+      } else {
+        alert('Element picker cannot be used on this page.');
+      }
     });
   });
 });
