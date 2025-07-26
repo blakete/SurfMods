@@ -14,18 +14,45 @@ document.addEventListener('DOMContentLoaded', () => {
   function refreshList(sites) {
     siteList.innerHTML = '';
     Object.keys(sites).forEach(key => {
-      const li = document.createElement('li');
       const site = sites[key];
-      li.textContent = `${key} (${site.action}: ${site.selector})`;
-      li.style.cursor = 'pointer';
+      const li = document.createElement('li');
 
-      li.addEventListener('click', () => {
+      // 1. Create the toggle checkbox for the individual mod
+      const toggleCheckbox = document.createElement('input');
+      toggleCheckbox.type = 'checkbox';
+      toggleCheckbox.checked = site.enabled;
+      toggleCheckbox.title = `Enable/Disable mod for ${key}`;
+
+      // 2. Add a listener to handle the toggle action
+      toggleCheckbox.addEventListener('change', () => {
+        sites[key].enabled = toggleCheckbox.checked;
+        saveSites(sites);
+        // Reload the page to apply the change instantly
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0] && tabs[0].id) {
+            chrome.tabs.reload(tabs[0].id);
+          }
+        });
+      });
+
+      // 3. Create a label for the site name that can still be clicked
+      const siteNameLabel = document.createElement('label');
+      siteNameLabel.textContent = key;
+      siteNameLabel.style.cursor = 'pointer';
+      siteNameLabel.style.marginLeft = '4px';
+
+      // When the site name is clicked, it still populates the form
+      siteNameLabel.addEventListener('click', () => {
         siteUrl.value = key;
         cssInput.value = site.css || '';
         modAction.value = site.action || 'remove';
         modSelector.value = site.selector || '';
         modValue.value = site.value || '';
       });
+
+      // 4. Append the checkbox and label to the list item
+      li.appendChild(toggleCheckbox);
+      li.appendChild(siteNameLabel);
       siteList.appendChild(li);
     });
   }
@@ -38,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modValue.value = '';
   }
 
-  // --- Event Listeners ---
+  // --- Event Listeners (No changes below this line) ---
   loadSites(sites => {
     refreshList(sites);
     chrome.storage.sync.get('globalEnabled', data => {
@@ -46,15 +73,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // UPDATED globalEnabled listener
   globalEnabled.addEventListener('change', () => {
     const isEnabled = globalEnabled.checked;
-    // 1. Save the new state to storage.
     chrome.storage.sync.set({ globalEnabled: isEnabled }, () => {
-      // 2. Find the active tab.
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         if (tabs[0] && tabs[0].id) {
-          // 3. Reload the tab to apply or remove the mods.
           chrome.tabs.reload(tabs[0].id);
         }
       });
@@ -67,8 +90,10 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     loadSites(sites => {
+      const existingMod = sites[siteUrl.value];
       sites[siteUrl.value] = {
-        enabled: true,
+        // Preserve existing enabled state on save, or default to true for new mods
+        enabled: existingMod ? existingMod.enabled : true,
         css: cssInput.value,
         action: modAction.value,
         selector: modSelector.value,
