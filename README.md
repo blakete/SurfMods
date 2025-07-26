@@ -1,4 +1,4 @@
-# ModKit  
+# SurfMods  
 **A simple, open source, web surfing mod kit** that allows you to **“surf the web your way 🌊🏄‍♂️🤙”**
 
 **ModKit** is a no-nonsense, developer-focused, open source Chrome extension for customizing websites on the fly.
