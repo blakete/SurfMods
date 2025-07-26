@@ -15,9 +15,12 @@ chrome.storage.sync.get(['sites', 'globalEnabled'], data => {
 
   if (site.js) {
     try {
-      eval(site.js);
+      const script = document.createElement('script');
+      script.textContent = site.js;
+      (document.head || document.documentElement).appendChild(script);
+      script.remove();  // Clean up after injection
     } catch (e) {
-      console.error('ModKit JS error:', e);
+      console.error('ModKit JS injection error:', e);
     }
   }
 });
