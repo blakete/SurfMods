@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
   // --- Get Elements ---
-  // Get all the elements from the NEW popup.html
   const globalEnabled = document.getElementById('globalEnabled');
   const siteList = document.getElementById('siteList');
   const siteUrl = document.getElementById('siteUrl');
@@ -11,20 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const saveBtn = document.getElementById('saveBtn');
   const deleteBtn = document.getElementById('deleteBtn');
 
-  // Note: The activatePicker button was removed from the last HTML proposal
-  // to make room for the new UI, but if you've added it back, its logic remains the same.
-
   // --- Functions ---
   function refreshList(sites) {
     siteList.innerHTML = '';
     Object.keys(sites).forEach(key => {
       const li = document.createElement('li');
       const site = sites[key];
-      // Display more useful info about the mod in the list
       li.textContent = `${key} (${site.action}: ${site.selector})`;
       li.style.cursor = 'pointer';
 
-      // When a saved mod is clicked, populate the form
       li.addEventListener('click', () => {
         siteUrl.value = key;
         cssInput.value = site.css || '';
@@ -52,18 +46,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // UPDATED globalEnabled listener
   globalEnabled.addEventListener('change', () => {
-    chrome.storage.sync.set({ globalEnabled: globalEnabled.checked });
+    const isEnabled = globalEnabled.checked;
+    // 1. Save the new state to storage.
+    chrome.storage.sync.set({ globalEnabled: isEnabled }, () => {
+      // 2. Find the active tab.
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0] && tabs[0].id) {
+          // 3. Reload the tab to apply or remove the mods.
+          chrome.tabs.reload(tabs[0].id);
+        }
+      });
+    });
   });
 
   saveBtn.addEventListener('click', () => {
     if (!siteUrl.value || !modSelector.value) {
-      // Require a domain and selector to save
       alert('Domain and CSS Selector are required.');
       return;
     }
     loadSites(sites => {
-      // Save the new structured mod data
       sites[siteUrl.value] = {
         enabled: true,
         css: cssInput.value,
