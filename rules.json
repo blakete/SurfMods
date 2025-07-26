@@ -12,7 +12,27 @@
             ]
         },
         "condition": {
-            "urlFilter": "*://x.com/*",
+            "urlFilter": "://blakesnotes.io/",
+            "resourceTypes": [
+                "main_frame",
+                "sub_frame"
+            ]
+        }
+    },
+    {
+        "id": 2,
+        "priority": 1,
+        "action": {
+            "type": "modifyHeaders",
+            "responseHeaders": [
+                {
+                    "header": "content-security-policy",
+                    "operation": "remove"
+                }
+            ]
+        },
+        "condition": {
+            "urlFilter": "://x.com/",
             "resourceTypes": [
                 "main_frame",
                 "sub_frame"

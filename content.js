@@ -1,29 +1,4 @@
-// content.js (updated for selectable popup with X close button and Esc support)
-
-chrome.storage.sync.get(['sites', 'globalEnabled'], data => {
-  if (data.globalEnabled === false) return;
-  const sites = data.sites || {};
-  const hostname = window.location.hostname;
-  const site = sites[hostname];
-  if (!site || !site.enabled) return;
-
-  if (site.css) {
-    const style = document.createElement('style');
-    style.textContent = site.css;
-    document.head.appendChild(style);
-  }
-
-  if (site.js) {
-    try {
-      const script = document.createElement('script');
-      script.textContent = site.js;
-      (document.head || document.documentElement).appendChild(script);
-      script.remove();  // Clean up after injection
-    } catch (e) {
-      console.error('ModKit JS injection error:', e);
-    }
-  }
-});
+// content.js (updated to only handle the element picker)
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.action === 'startPicker') {
